@@ -1,66 +1,72 @@
 package com.example.addon.modules;
 
-import com.example.addon.AddonTemplate;
-import meteordevelopment.meteorclient.events.render.Render3DEvent;
-import meteordevelopment.meteorclient.renderer.ShapeMode;
-import meteordevelopment.meteorclient.settings.ColorSetting;
-import meteordevelopment.meteorclient.settings.DoubleSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
+import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
+import meteordevelopment.meteorclient.settings.*;
+import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.utils.render.color.Color;
-import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.AABB;
 
 public class ModuleExample extends Module {
-    private final SettingGroup sgGeneral = this.settings.getDefaultGroup();
-    private final SettingGroup sgRender = this.settings.createGroup("Render");
+    private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
-    /**
-     * Example setting.
-     * The {@code name} parameter should be in kebab-case.
-     * If you want to access the setting from another class, simply make the setting {@code public}, and use
-     * {@link meteordevelopment.meteorclient.systems.modules.Modules#get(Class)} to access the {@link Module} object.
-     */
-    private final Setting<Double> scale = sgGeneral.add(new DoubleSetting.Builder()
-        .name("scale")
-        .description("The size of the marker.")
-        .defaultValue(2.0d)
-        .range(0.5d, 10.0d)
+    private final Setting<String> password = sgGeneral.add(new StringSetting.Builder()
+        .name("password")
+        .description("Mật khẩu tài khoản.")
+        .defaultValue("123456")
         .build()
     );
 
-    private final Setting<SettingColor> color = sgRender.add(new ColorSetting.Builder()
-        .name("color")
-        .description("The color of the marker.")
-        .defaultValue(Color.MAGENTA)
+    private final Setting<Boolean> autoSelectSmp = sgGeneral.add(new BoolSetting.Builder()
+        .name("auto-select-smp")
+        .description("Tự động vào SMP.")
+        .defaultValue(true)
         .build()
     );
 
-    /**
-     * The {@code name} parameter should be in kebab-case.
-     */
+    private final Setting<String> smpCommand = sgGeneral.add(new StringSetting.Builder()
+        .name("smp-command")
+        .description("Lệnh chọn server con.")
+        .defaultValue("smp")
+        .build()
+    );
+
+    private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
+        .name("delay-ms")
+        .description("Độ trễ gửi lệnh (ms).")
+        .defaultValue(1000)
+        .min(0)
+        .sliderMax(5000)
+        .build()
+    );
+
     public ModuleExample() {
-        super(AddonTemplate.CATEGORY, "world-origin", "An example module that highlights the center of the world.");
+        super(Category.MISC, "auto-login-smp", "Tự động đăng nhập và chọn cụm SMP.");
     }
 
-    /**
-     * Example event handling method.
-     * Requires {@link AddonTemplate#getPackage()} to be setup correctly, otherwise the game will crash whenever the module is enabled.
-     */
     @EventHandler
-    private void onRender3d(Render3DEvent event) {
-        // Create & expand the marker object
-        AABB marker = new AABB(BlockPos.ZERO);
-        marker = marker.expandTowards(
-            scale.get() * marker.getXsize(),
-            scale.get() * marker.getYsize(),
-            scale.get() * marker.getZsize()
-        );
+    private void onReceiveMessage(ReceiveMessageEvent event) {
+        if (mc.player == null) return;
+        String msg = event.getMessage().getString().toLowerCase();
 
-        // Render the marker based on the color setting
-        event.renderer.box(marker, color.get(), color.get(), ShapeMode.Both, 0);
+        if (msg.contains("/login") || msg.contains("dang nhap") || msg.contains("đăng nhập")) {
+            sendCommand("login " + password.get(), delay.get());
+        } 
+        
+        if (autoSelectSmp.get() && (msg.contains("thành công") || msg.contains("success") || msg.contains("chào mừng"))) {
+            sendCommand(smpCommand.get(), delay.get() + 500); 
+        }
+    }
+
+    private void sendCommand(String command, int waitTime) {
+        new Thread(() -> {
+            try {
+                Thread.sleep(waitTime);
+                if (mc.player != null && mc.player.networkHandler != null) {
+                    mc.player.networkHandler.sendChatCommand(command);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
