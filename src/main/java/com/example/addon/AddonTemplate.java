@@ -1,72 +1,31 @@
-package com.example.addon.modules;
+package com.example.addon;
 
-import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
-import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.modules.Categories;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.orbit.EventHandler;
+import com.example.addon.modules.ModuleExample;
+import com.mojang.logging.LogUtils;
+import meteordevelopment.meteorclient.addons.MeteorAddon;
+import meteordevelopment.meteorclient.systems.modules.Category;
+import meteordevelopment.meteorclient.systems.modules.Modules;
+import org.slf4j.Logger;
 
-public class ModuleExample extends Module {
-    private final SettingGroup sgGeneral = settings.getDefaultGroup();
+public class AddonTemplate extends MeteorAddon {
+    public static final Logger LOG = LogUtils.getLogger();
+    public static final Category CATEGORY = new Category("Auto Login");
 
-    private final Setting<String> password = sgGeneral.add(new StringSetting.Builder()
-        .name("password")
-        .description("Mật khẩu tài khoản.")
-        .defaultValue("123456")
-        .build()
-    );
+    @Override
+    public void onInitialize() {
+        LOG.info("Initializing Meteor AutoLogin Addon");
 
-    private final Setting<Boolean> autoSelectSmp = sgGeneral.add(new BoolSetting.Builder()
-        .name("auto-select-smp")
-        .description("Tự động vào SMP.")
-        .defaultValue(true)
-        .build()
-    );
-
-    private final Setting<String> smpCommand = sgGeneral.add(new StringSetting.Builder()
-        .name("smp-command")
-        .description("Lệnh chọn server con.")
-        .defaultValue("smp")
-        .build()
-    );
-
-    private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
-        .name("delay-ms")
-        .description("Độ trễ gửi lệnh (ms).")
-        .defaultValue(1000)
-        .min(0)
-        .sliderMax(5000)
-        .build()
-    );
-
-    public ModuleExample() {
-        super(Categories.MISC, "auto-login-smp", "Tự động đăng nhập và chọn cụm SMP.");
+        // Modules
+        Modules.get().add(new ModuleExample());
     }
 
-    @EventHandler
-    private void onReceiveMessage(ReceiveMessageEvent event) {
-        if (mc.player == null) return;
-        String msg = event.getMessage().getString().toLowerCase();
-
-        if (msg.contains("/login") || msg.contains("dang nhap") || msg.contains("đăng nhập")) {
-            sendCommand("login " + password.get(), delay.get());
-        } 
-        
-        if (autoSelectSmp.get() && (msg.contains("thành công") || msg.contains("success") || msg.contains("chào mừng"))) {
-            sendCommand(smpCommand.get(), delay.get() + 500); 
-        }
+    @Override
+    public void registerCategories() {
+        Modules.REGISTERED_CATEGORIES.add(CATEGORY);
     }
 
-    private void sendCommand(String command, int waitTime) {
-        new Thread(() -> {
-            try {
-                Thread.sleep(waitTime);
-                if (mc.getNetworkHandler() != null) {
-                    mc.getNetworkHandler().sendChatCommand(command);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+    @Override
+    public String getPackage() {
+        return "com.example.addon";
     }
 }
