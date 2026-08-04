@@ -4,6 +4,7 @@ import com.example.addon.AddonTemplate;
 import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 
 public class ModuleExample extends Module {
@@ -61,9 +62,7 @@ public class ModuleExample extends Module {
         new Thread(() -> {
             try {
                 Thread.sleep(waitTime);
-                if (mc.player != null) {
-                    mc.player.networkHandler.sendChatCommand(command);
-                }
+                ChatUtils.sendPlayerCommand(command);
             } catch (Exception e) {
                 e.printStackTrace();
             }
