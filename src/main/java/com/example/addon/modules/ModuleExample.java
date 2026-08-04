@@ -61,8 +61,8 @@ public class ModuleExample extends Module {
         new Thread(() -> {
             try {
                 Thread.sleep(waitTime);
-                if (mc.getNetworkHandler() != null) {
-                    mc.getNetworkHandler().sendChatCommand(command);
+                if (mc.player != null) {
+                    mc.player.networkHandler.sendChatCommand(command);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
