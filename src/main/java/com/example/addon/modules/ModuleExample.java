@@ -2,8 +2,9 @@ package com.example.addon.modules;
 
 import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.modules.Category;
+import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 
 public class ModuleExample extends Module {
@@ -40,7 +41,7 @@ public class ModuleExample extends Module {
     );
 
     public ModuleExample() {
-        super(Category.MISC, "auto-login-smp", "Tự động đăng nhập và chọn cụm SMP.");
+        super(Categories.MISC, "auto-login-smp", "Tự động đăng nhập và chọn cụm SMP.");
     }
 
     @EventHandler
@@ -61,10 +62,8 @@ public class ModuleExample extends Module {
         new Thread(() -> {
             try {
                 Thread.sleep(waitTime);
-                if (mc.player != null && mc.player.networkHandler != null) {
-                    mc.player.networkHandler.sendChatCommand(command);
-                }
-            } catch (InterruptedException e) {
+                ChatUtils.sendPlayerMsg("/" + command);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
