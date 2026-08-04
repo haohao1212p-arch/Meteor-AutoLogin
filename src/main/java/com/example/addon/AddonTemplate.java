@@ -40,7 +40,7 @@ public class ModuleExample extends Module {
     );
 
     public ModuleExample() {
-        super(Categories.Misc, "auto-login-smp", "Tự động đăng nhập và chọn cụm SMP.");
+        super(Categories.MISC, "auto-login-smp", "Tự động đăng nhập và chọn cụm SMP.");
     }
 
     @EventHandler
